@@ -6,17 +6,10 @@ public class TableDomain implements Serializable {
     private int id;
 
     private String title;
-    private String desc;
+    private String seat;
     private String pic;
-    private Integer price;
 
-    public Integer getPrice() {
-        return price;
-    }
 
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
 
     public int getId() {
         return id;
@@ -34,12 +27,12 @@ public class TableDomain implements Serializable {
         this.title = title;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getSeat() {
+        return seat;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setSeat(String desc) {
+        this.seat = desc;
     }
 
     public String getPic() {
@@ -50,12 +43,12 @@ public class TableDomain implements Serializable {
         this.pic = pic;
     }
 
-    public TableDomain(int id, String title, String desc, String pic,Integer price) {
+    public TableDomain(int id, String title, String desc) {
         this.id = id;
         this.title = title;
-        this.desc = desc;
+        this.seat = desc;
         this.pic = pic;
-        this.price=price;
+
 
     }
 }

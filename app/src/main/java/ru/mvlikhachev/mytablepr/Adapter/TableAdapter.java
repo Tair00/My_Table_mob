@@ -27,76 +27,57 @@ import ru.mvlikhachev.mytablepr.Domain.TableDomain;
 import ru.mvlikhachev.mytablepr.R;
 
 public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHolder> {
-    Context context;
-    ArrayList<TableDomain> products;
+    private Context context;
+    private ArrayList<TableDomain> serverItems;
 
-    public TableAdapter(Context context, ArrayList<TableDomain> products) {
+    public TableAdapter(Context context, ArrayList<TableDomain> serverItems) {
         this.context = context;
-        this.products = products;
+        this.serverItems = serverItems;
     }
-
-
 
     @NonNull
     @Override
-    public TableViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType){
-        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_item,parent,false);
+    public TableViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_item, parent, false);
         return new TableViewHolder(inflate);
-
-
     }
-
 
     @Override
     public void onBindViewHolder(@NonNull TableViewHolder holder, int position) {
-        holder.tableTitles.setText(products.get(position).getTitle());
-        holder.tableDesc.setText(String.valueOf(products.get(position).getDesc()));
+        holder.tableTitles.setText(serverItems.get(position).getTitle());
+        holder.tableDesc.setText(serverItems.get(position).getSeat());
+        
 
-        int imageId = holder.itemView.getContext().getResources()
-                .getIdentifier( products.get(position).getPic(),"drawable",holder.itemView.getContext()
-                        .getPackageName());
-        Glide.with(holder.itemView.getContext()).load(imageId).into(holder.tableImage);
-        holder.tableTitles.setText(products.get(position).getTitle());
-        holder.tableDesc.setText(String.valueOf(products.get(position).getDesc()));
-        holder.itemView.setOnClickListener(new View.OnClickListener(){
-
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity)context,
-                        new Pair<View, String>(holder.tableImage,"productImage"));
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,
+                        new Pair<View, String>(holder.tableImage, "productImage"));
                 Intent intent = new Intent(holder.itemView.getContext(), PuyActivity.class);
-                intent.putExtra("object",products.get(position));
-                holder.itemView.getContext().startActivity(intent,options.toBundle());
-
+                intent.putExtra("object", serverItems.get(position));
+                holder.itemView.getContext().startActivity(intent, options.toBundle());
             }
-
         });
+
         // Добавление эффекта отскока
         Animation animation = AnimationUtils.loadAnimation(context, R.anim.bounce_animation);
         holder.itemView.startAnimation(animation);
-
     }
 
     @Override
     public int getItemCount() {
-        return products.size();
+        return serverItems.size();
     }
 
-    public class TableViewHolder extends RecyclerView.ViewHolder{
-
+    public class TableViewHolder extends RecyclerView.ViewHolder {
         ImageView tableImage;
         TextView tableTitles, tableDesc;
 
-
-
-
         public TableViewHolder(@NonNull View itemView) {
             super(itemView);
-            tableImage= itemView.findViewById(R.id.table_cart);
-            tableTitles= itemView.findViewById(R.id.title);
-            tableDesc= itemView.findViewById(R.id.size);
+            tableImage = itemView.findViewById(R.id.table_cart);
+            tableTitles = itemView.findViewById(R.id.title);
+            tableDesc = itemView.findViewById(R.id.size);
         }
     }
-
 }
-
