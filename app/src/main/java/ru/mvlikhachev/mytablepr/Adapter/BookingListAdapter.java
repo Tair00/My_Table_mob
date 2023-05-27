@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -31,7 +32,7 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
     public BookingListAdapter(ArrayList<RestoranDomain> listRestSelected, Context context,
                               ChangeNumberItemsListener changeNumberItemsListener) {
         this.listRestSelected = listRestSelected;
-        managementCart = new ManagementCart(context);
+        managementCart = new ManagementCart(context, (ManagementCart.CartListener) context);
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
 
@@ -49,12 +50,12 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.title.setText(listRestSelected.get(position).getTitle());
+        holder.title.setText(listRestSelected.get(position).getName());
         holder.feeEachItem.setText(String.valueOf(listRestSelected.get(position).getPrice()));
         holder.grade.setText(String.valueOf(listRestSelected.get(position).getStar()));
 
         int drawableResourceId = holder.itemView.getContext().getResources()
-                .getIdentifier(listRestSelected.get(position).getPic(), "drawable",
+                .getIdentifier(listRestSelected.get(position).getPicture(), "drawable",
                         holder.itemView.getContext().getPackageName());
         Glide.with(holder.itemView.getContext()).load(drawableResourceId).into(holder.pic);
 
@@ -71,20 +72,21 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
                 changeNumberItemsListener.changed();
             }
 
-
             @Override
             public void onDragStateChanged(int state) {
 
             }
         });
+
+        // Установка поведения SwipeDismissBehavior для элемента списка
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) holder.itemView.getLayoutParams();
+        params.setBehavior(swipe);
     }
 
     @Override
     public int getItemCount() {
         return listRestSelected.size();
     }
-
-
 
     public void deleteItem(int position) {
         managementCart.deleteCartItem(listRestSelected.get(position));
@@ -94,35 +96,17 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
         changeNumberItemsListener.changed();
     }
 
-//    @Override
-//    public void onItemMove(int fromPosition, int toPosition) {
-//        // Do nothing
-//    }
-//
-//    @Override
-//    public void onItemDismiss(int position) {
-//        // Do nothing
-//    }
-
-    interface ItemTouchHelperAdapter {
-        void onItemMove(int fromPosition, int toPosition);
-
-        void onItemDismiss(int position);
-    }
-    public class ViewHolder extends RecyclerView.ViewHolder{
-        TextView title,feeEachItem;
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        TextView title, feeEachItem;
         ImageView pic;
-        TextView num,grade;
+        TextView num, grade;
 
-        public ViewHolder(@NonNull View itemView){
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.title);
-            pic= itemView.findViewById(R.id.pic);
+            pic = itemView.findViewById(R.id.pic);
             feeEachItem = itemView.findViewById(R.id.fee);
             grade = itemView.findViewById(R.id.grade);
-//            totalEachItem = itemView.findViewById(R.id.totalEachItem);
-
-
         }
     }
 }

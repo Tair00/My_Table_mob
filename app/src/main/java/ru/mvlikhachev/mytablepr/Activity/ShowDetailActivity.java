@@ -21,7 +21,7 @@ import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.R;
 
-public class ShowDetailActivity extends AppCompatActivity {
+public class ShowDetailActivity extends AppCompatActivity implements ManagementCart.CartListener {
     private TextView addToCartBtn;
     private TextView titleTxt, feeTxt, description, starTxt, tableTxt;
     private ImageView heart, restoranPic;
@@ -36,7 +36,7 @@ public class ShowDetailActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_detail);
-        managementCart = new ManagementCart(this);
+        managementCart = new ManagementCart(getApplicationContext(), this);
         initView();
         getBundle();
     }
@@ -44,76 +44,58 @@ public class ShowDetailActivity extends AppCompatActivity {
     private void getBundle() {
         object = (RestoranDomain) getIntent().getSerializableExtra("object");
         if (object != null) {
-            titleTxt.setText(object.getTitle());
+            titleTxt.setText(object.getName());
             feeTxt.setText(String.valueOf(object.getPrice()));
             description.setText(object.getDescription());
             starTxt.setText(String.valueOf(object.getStar()));
 
-            ImgurApiClient.getClient().getImgurImage(object.getPic()).enqueue(new Callback<ImgurResponse>() {
-                @Override
-                public void onResponse(Call<ImgurResponse> call, Response<ImgurResponse> response) {
-                    if (response.isSuccessful()) {
-                        ImgurResponse imgurResponse = response.body();
-                        if (imgurResponse != null) {
-                            String imageUrl = imgurResponse.getData().getLink();
-                            Picasso.get().load(imageUrl).into(restoranPic);
-                        }
-                    } else {
-                        // Обработка ошибки загрузки изображения
-                    }
-                }
+            Picasso.get().load(object.getPicture()).into(restoranPic);
 
+            addToCartBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onFailure(Call<ImgurResponse> call, Throwable t) {
-                    // Обработка ошибки загрузки изображения
+                public void onClick(View v) {
+                    String title = feeTxt.getText().toString();
+
+                    // Сохранение значения в SharedPreferences
+                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("title", title);
+                    editor.apply();
+
+                    Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
+                    startActivity(intent1);
+                }
+            });
+
+            heart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    managementCart.addToCart(object);
+                }
+            });
+
+            plusBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    numberOrder = numberOrder + 1;
+                    numberOrderTxt.setText(String.valueOf(numberOrder));
+                    feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
+                }
+            });
+
+            minusBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (numberOrder > 1) {
+                        numberOrder = numberOrder - 1;
+                    }
+                    numberOrderTxt.setText(String.valueOf(numberOrder));
+                    feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
                 }
             });
         } else {
             // Обработка ошибки: объект RestoranDomain не передан
         }
-
-        addToCartBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String title = feeTxt.getText().toString();
-
-                // Сохранение значения в SharedPreferences
-                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("title", title);
-                editor.apply();
-
-                Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
-                startActivity(intent1);
-            }
-        });
-
-        heart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                managementCart.addToCart(object);
-            }
-        });
-
-        plusBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                numberOrder = numberOrder + 1;
-                numberOrderTxt.setText(String.valueOf(numberOrder));
-                feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
-            }
-        });
-
-        minusBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (numberOrder > 1) {
-                    numberOrder = numberOrder - 1;
-                }
-                numberOrderTxt.setText(String.valueOf(numberOrder));
-                feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
-            }
-        });
     }
 
     private void initView() {
@@ -128,5 +110,10 @@ public class ShowDetailActivity extends AppCompatActivity {
         starTxt = findViewById(R.id.starTxt);
         plusBtn = findViewById(R.id.plusCardBtn);
         minusBtn = findViewById(R.id.minusCardBtn);
+    }
+
+    @Override
+    public void onCartUpdated() {
+        // Обработка обновления корзины
     }
 }

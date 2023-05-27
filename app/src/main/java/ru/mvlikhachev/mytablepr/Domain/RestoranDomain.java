@@ -11,13 +11,22 @@ public class RestoranDomain implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    private String title;
-    private String pic;
+    private String name;
+    private String picture;
     private String description;
     private Float price;
     private Float star;
     private int table;
     private int cat_id;
+    private String imageUrl;
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
 
     public int getCat_id() {
@@ -28,20 +37,20 @@ public class RestoranDomain implements Serializable {
         this.cat_id = cat_id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String title) {
+        this.name = title;
     }
 
-    public String getPic() {
-        return pic;
+    public String getPicture() {
+        return picture;
     }
 
-    public void setPic(String pic) {
-        this.pic = pic;
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public String getDescription() {
@@ -83,14 +92,16 @@ public class RestoranDomain implements Serializable {
         this.id = id;
     }
 
-    public RestoranDomain(int id,String title, String pic, String description, Float price, Float star, int table,int cat_id) {
-        this.title = title;
-        this.pic = pic;
+    public RestoranDomain(String name, String picture, String description, Float price, Float star, int table, int cat_id) {
+        this.name = name;
+        this.picture = picture;
         this.description = description;
         this.price = price;
         this.star = star;
         this.table = table;
-        this.id=id;
-        this.cat_id=cat_id;
+        this.cat_id = cat_id;
     }
+
+
+
 }

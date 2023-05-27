@@ -21,7 +21,7 @@ import ru.mvlikhachev.mytablepr.Interface.ChangeNumberItemsListener;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.R;
 
-public class CartActivity extends AppCompatActivity {
+public class CartActivity extends AppCompatActivity implements ManagementCart.CartListener {
     private RecyclerView.Adapter adapter;
     private RecyclerView recyclerViewList;
     private ManagementCart managementCart;
@@ -32,54 +32,30 @@ public class CartActivity extends AppCompatActivity {
     private ScrollView scrollView;
     private ConstraintLayout orderbtn,profileIcon;
 
-
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
-        managementCart= new ManagementCart(this);
+        managementCart = new ManagementCart(this, this);
 
         initView();
         initList();
         bottomNavigation();
-
-
     }
 
-    protected void bottomNavigation(){
+    protected void bottomNavigation() {
+        // Добавьте свою логику для нижней навигации
     }
+
     private void initSwipeToDelete() {
         SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(cartListAdapter);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeToDeleteCallback);
         itemTouchHelper.attachToRecyclerView(recyclerViewList);
     }
+
     protected void initList() {
-//        profileIcon.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                startActivityForResult(intent, PICK_IMAGE_REQUEST);
-//            }
-//        });
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
-        recyclerViewList.setLayoutManager( linearLayoutManager);
-        adapter= new CartListAdapter((ArrayList<RestoranDomain>) managementCart.getListCart(), this, new ChangeNumberItemsListener() {
-            @Override
-            public void changed() {
-                calculateCard();
-            }
-        });
-        recyclerViewList.setAdapter(adapter);
-        if (managementCart.getListCart().isEmpty()){
-
-            scrollView.setVisibility(View.GONE);
-
-        }
-        else {
-
-            scrollView.setVisibility(View.VISIBLE);
-        }
-
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        recyclerViewList.setLayoutManager(linearLayoutManager);
         cartListAdapter = new CartListAdapter((ArrayList<RestoranDomain>) managementCart.getListCart(), this, new ChangeNumberItemsListener() {
             @Override
             public void changed() {
@@ -89,6 +65,11 @@ public class CartActivity extends AppCompatActivity {
         recyclerViewList.setAdapter(cartListAdapter);
         initSwipeToDelete();
 
+        if (managementCart.getListCart().isEmpty()) {
+            scrollView.setVisibility(View.GONE);
+        } else {
+            scrollView.setVisibility(View.VISIBLE);
+        }
     }
 
     protected void calculateCard() {
@@ -98,5 +79,10 @@ public class CartActivity extends AppCompatActivity {
         profileIcon = findViewById(R.id.profile_icon);
         recyclerViewList = findViewById(R.id.view);
         scrollView = findViewById(R.id.scrollView);
+    }
+
+    @Override
+    public void onCartUpdated() {
+
     }
 }

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewPopular();
         bottomNavigation();
 
-        orderlist1.clear();
+//        orderlist1.clear();
         fullOrderlist.clear();
         setProductRecycler(orderlist1);
 

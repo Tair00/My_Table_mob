@@ -19,8 +19,8 @@ public interface CartDao {
     @Query("SELECT * FROM cart_items WHERE id = :id")
     RestoranDomain getById(int id);
 
-    @Query("SELECT * FROM cart_items WHERE title LIKE :title LIMIT 1")
-    RestoranDomain findByTitle(String title);
+    @Query("SELECT * FROM cart_items WHERE name LIKE :name LIMIT 1")
+    RestoranDomain findByTitle(String name);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(RestoranDomain cartItem);

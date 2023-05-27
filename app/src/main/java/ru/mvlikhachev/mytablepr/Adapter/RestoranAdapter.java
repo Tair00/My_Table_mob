@@ -1,9 +1,12 @@
+
+
 package ru.mvlikhachev.mytablepr.Adapter;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,22 +15,13 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
-
-
 import ru.mvlikhachev.mytablepr.Activity.ShowDetailActivity;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.R;
-
-
-import com.squareup.picasso.Picasso;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,28 +51,10 @@ public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.Restor
     @Override
     public void onBindViewHolder(@NonNull RestoranViewHolder holder, int position) {
         RestoranDomain product = products.get(position);
-        holder.productTitles.setText(product.getTitle());
+        holder.productTitles.setText(product.getName());
         holder.productPrice.setText(String.valueOf(product.getPrice()));
 
-        ImgurApiClient.getClient().getImgurImage(product.getPic()).enqueue(new Callback<ImgurResponse>() {
-            @Override
-            public void onResponse(Call<ImgurResponse> call, Response<ImgurResponse> response) {
-                if (response.isSuccessful()) {
-                    ImgurResponse imgurResponse = response.body();
-                    if (imgurResponse != null) {
-                        String imageUrl = imgurResponse.getData().getLink();
-                        Picasso.get().load(imageUrl).into(holder.productImage);
-                    }
-                } else {
-                    // Обработка ошибки загрузки изображения
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ImgurResponse> call, Throwable t) {
-                // Обработка ошибки загрузки изображения
-            }
-        });
+        Picasso.get().load(product.getPicture()).into(holder.productImage);
 
         holder.grade.setText(String.valueOf(product.getStar()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
