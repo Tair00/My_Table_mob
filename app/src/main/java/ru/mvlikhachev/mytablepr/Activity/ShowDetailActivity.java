@@ -63,6 +63,7 @@ public class ShowDetailActivity extends AppCompatActivity implements ManagementC
                     editor.apply();
 
                     Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
+                    intent1.putExtra("feeTxt", title); // Передача значения feeTxt в BookingActivity2
                     startActivity(intent1);
                 }
             });

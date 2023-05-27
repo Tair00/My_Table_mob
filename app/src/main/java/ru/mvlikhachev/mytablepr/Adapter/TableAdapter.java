@@ -28,34 +28,41 @@ import ru.mvlikhachev.mytablepr.R;
 
 public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHolder> {
     private Context context;
-    private ArrayList<TableDomain> serverItems;
+    private ArrayList<TableDomain> products;
+    private OnItemClickListener onItemClickListener;
 
-    public TableAdapter(Context context, ArrayList<TableDomain> serverItems) {
+    public TableAdapter(Context context, ArrayList<TableDomain> products) {
         this.context = context;
-        this.serverItems = serverItems;
+        this.products = products;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.onItemClickListener = listener;
     }
 
     @NonNull
     @Override
     public TableViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_item, parent, false);
-        return new TableViewHolder(inflate);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_item, parent, false);
+        return new TableViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TableViewHolder holder, int position) {
-        holder.tableTitles.setText(serverItems.get(position).getTitle());
-        holder.tableDesc.setText(serverItems.get(position).getSeat());
-        
+        TableDomain table = products.get(position);
+
+        holder.tableTitles.setText(table.getTitle());
+        holder.tableDesc.setText(String.valueOf(table.getSeat()));
+
+//        int imageId = holder.itemView.getContext().getResources().getIdentifier(table.getPic(), "drawable", holder.itemView.getContext().getPackageName());
+//        Glide.with(holder.itemView.getContext()).load(imageId).into(holder.tableImage);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,
-                        new Pair<View, String>(holder.tableImage, "productImage"));
-                Intent intent = new Intent(holder.itemView.getContext(), PuyActivity.class);
-                intent.putExtra("object", serverItems.get(position));
-                holder.itemView.getContext().startActivity(intent, options.toBundle());
+                if (onItemClickListener != null) {
+                    onItemClickListener.onItemClick(table);
+                }
             }
         });
 
@@ -66,7 +73,11 @@ public class TableAdapter extends RecyclerView.Adapter<TableAdapter.TableViewHol
 
     @Override
     public int getItemCount() {
-        return serverItems.size();
+        return products.size();
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(TableDomain table);
     }
 
     public class TableViewHolder extends RecyclerView.ViewHolder {
