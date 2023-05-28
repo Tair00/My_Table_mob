@@ -1,56 +1,63 @@
 package ru.mvlikhachev.mytablepr.Helper;
 
 import android.content.Context;
-import android.os.AsyncTask;
-
-import androidx.room.Room;
 
 import java.util.ArrayList;
-import java.util.List;
 
+import ru.mvlikhachev.mytablepr.Activity.CartActivity;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 
 public class ManagementCart {
-    private CartDatabase database;
+    private static ManagementCart instance;
+    private ArrayList<RestoranDomain> listCart = new ArrayList<>();
     private CartListener cartListener;
 
-    public interface CartListener {
-        void onCartUpdated();
+    private ManagementCart(Context context, CartListener listener) {
+        // Инициализация объекта ManagementCart
+        // Производите необходимые операции, связанные с корзиной
+        // Например, получение данных из базы данных или файла
+
+        this.cartListener = listener;
     }
 
-    public ManagementCart(Context context, CartListener listener) {
-        database = Room.databaseBuilder(context, CartDatabase.class, "cart_db")
-                .build();
-        cartListener = listener;
-    }
-
-    public List<RestoranDomain> getListCart() {
-        return database.cartDao().getAll();
-    }
-    public void deleteCartItem(RestoranDomain cartItem) {
-        database.cartDao().delete(cartItem);
-    }
-    public void addToCart(RestoranDomain cartItem) {
-        new AddToCartAsyncTask().execute(cartItem);
-    }
-    public void removeItem(ArrayList<RestoranDomain> list, int position, RestoranDomain item) {
-        list.remove(position);
-        database.cartDao().delete(item);
-    }
-    private class AddToCartAsyncTask extends AsyncTask<RestoranDomain, Void, Void> {
-        @Override
-        protected Void doInBackground(RestoranDomain... cartItems) {
-            RestoranDomain cartItem = cartItems[0];
-            RestoranDomain itemFromDb = database.cartDao().findByTitle(cartItem.getName());
-            if (itemFromDb == null) {
-                database.cartDao().insert(cartItem);
-            }
-            return null;
+    public static ManagementCart getInstance(Context context, CartActivity listener) {
+        if (instance == null) {
+            instance = new ManagementCart(context, listener);
         }
+        return instance;
+    }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
+    public ArrayList<RestoranDomain> getListCart() {
+        return listCart;
+    }
+
+    public void addItem(RestoranDomain item) {
+        // Добавление элемента в корзину
+        // Выполните необходимые операции
+        listCart.add(item);
+        cartListener.onCartUpdated();
+    }
+
+    public void removeItem(ArrayList<RestoranDomain> list, int position) {
+        if (list != null && position >= 0 && position < list.size()) {
+            RestoranDomain item = list.get(position);
+            list.remove(position);
+            // Выполните здесь необходимые действия при удалении элемента, например, пересчет общей суммы или обновление интерфейса
             cartListener.onCartUpdated();
         }
+    }
+
+    public void deleteCartItem(RestoranDomain item) {
+        // Удаление элемента корзины
+        // Выполните необходимые операции
+        listCart.remove(item);
+        cartListener.onCartUpdated();
+    }
+
+    // Остальные методы класса
+
+    // Внутренний интерфейс для обратного вызова
+    public interface CartListener {
+        void onCartUpdated();
     }
 }

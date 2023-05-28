@@ -25,18 +25,18 @@ public class CartActivity extends AppCompatActivity implements ManagementCart.Ca
     private RecyclerView.Adapter adapter;
     private RecyclerView recyclerViewList;
     private ManagementCart managementCart;
-    private TextView totalFeeTxt,taxTxt,deliveryTxt ;
+    private TextView totalFeeTxt, taxTxt, deliveryTxt;
     public TextView totalTxt;
     private CartListAdapter cartListAdapter;
     private double tax;
     private ScrollView scrollView;
-    private ConstraintLayout orderbtn,profileIcon;
+    private ConstraintLayout orderbtn, profileIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
-        managementCart = new ManagementCart(this, this);
+        managementCart = ManagementCart.getInstance(this, this);
 
         initView();
         initList();
@@ -59,7 +59,7 @@ public class CartActivity extends AppCompatActivity implements ManagementCart.Ca
         cartListAdapter = new CartListAdapter((ArrayList<RestoranDomain>) managementCart.getListCart(), this, new ChangeNumberItemsListener() {
             @Override
             public void changed() {
-                calculateCard();
+                calculateCart();
             }
         });
         recyclerViewList.setAdapter(cartListAdapter);
@@ -72,7 +72,8 @@ public class CartActivity extends AppCompatActivity implements ManagementCart.Ca
         }
     }
 
-    protected void calculateCard() {
+    protected void calculateCart() {
+        // Выполните расчет общей суммы корзины и обновите соответствующие представления
     }
 
     protected void initView() {
@@ -83,6 +84,7 @@ public class CartActivity extends AppCompatActivity implements ManagementCart.Ca
 
     @Override
     public void onCartUpdated() {
-
+        // Обработка обновления корзины
+        calculateCart();
     }
 }

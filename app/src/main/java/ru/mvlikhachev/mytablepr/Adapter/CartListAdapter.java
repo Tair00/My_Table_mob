@@ -16,24 +16,26 @@ import com.google.android.material.behavior.SwipeDismissBehavior;
 
 import java.util.ArrayList;
 
+import ru.mvlikhachev.mytablepr.Activity.CartActivity;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Interface.ChangeNumberItemsListener;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.R;
 
-public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHolder> implements ManagementCart.CartListener {
+public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHolder> {
 
     private ArrayList<RestoranDomain> listRestSelected;
     private ManagementCart managementCart;
     private ChangeNumberItemsListener changeNumberItemsListener;
     private ItemTouchHelper itemTouchHelper;
 
-    public CartListAdapter(ArrayList<RestoranDomain> listRestSelected, Context context,
+    public CartListAdapter(ArrayList<RestoranDomain> listRestSelected, CartActivity activity,
                            ChangeNumberItemsListener changeNumberItemsListener) {
         this.listRestSelected = listRestSelected;
-        managementCart = new ManagementCart(context, this); // Добавлен this в качестве CartListener
+        managementCart = ManagementCart.getInstance(activity, activity);
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
+
 
     @NonNull
     @Override
@@ -51,6 +53,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.title.setText(listRestSelected.get(position).getName());
         holder.feeEachItem.setText(String.valueOf(listRestSelected.get(position).getPrice()));
+
         holder.grade.setText(String.valueOf(listRestSelected.get(position).getStar()));
 
         int drawableResourceId = holder.itemView.getContext().getResources()
@@ -65,7 +68,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
             public void onDismiss(View view) {
                 int adapterPosition = holder.getAdapterPosition();
                 RestoranDomain removedItem = listRestSelected.get(adapterPosition);
-                managementCart.removeItem(listRestSelected, adapterPosition, removedItem);
+                managementCart.removeItem(listRestSelected, adapterPosition);
                 listRestSelected.remove(adapterPosition);
                 notifyDataSetChanged();
                 changeNumberItemsListener.changed();
@@ -84,7 +87,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
         return listRestSelected.size();
     }
 
-    @Override
+//    @Override
     public void onCartUpdated() {
         // Обработка обновления корзины
         // Вы можете вызвать методы, которые требуют обновленных данных корзины

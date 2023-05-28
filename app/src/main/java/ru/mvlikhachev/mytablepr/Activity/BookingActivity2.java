@@ -3,6 +3,7 @@ package ru.mvlikhachev.mytablepr.Activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.TextView;
@@ -41,7 +42,7 @@ public class BookingActivity2 extends AppCompatActivity {
     static TableAdapter tableAdapter;
     String serverUrl = "https://losermaru.pythonanywhere.com/table";
     static ArrayList<TableDomain> tableList = new ArrayList<>();
-    private Float price;
+    Float price;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +51,7 @@ public class BookingActivity2 extends AppCompatActivity {
         setTableRecycler(tableList);
         showDatePickerDialog();
         String feeTxtValue = getIntent().getStringExtra("feeTxt");
-        Float price =Float.parseFloat(feeTxtValue);
+        price = Float.parseFloat(feeTxtValue);
         // Выполнение GET-запроса к серверу
         executeGetRequest();
     }
@@ -157,6 +158,8 @@ public class BookingActivity2 extends AppCompatActivity {
             jsonBody.put("number", number);
             jsonBody.put("name", name);
             jsonBody.put("price", price);
+            jsonBody.put("restaurant_id", "your_restaurant_id"); // Замените на свой идентификатор ресторана
+            jsonBody.put("user_id", "your_user_id"); // Замените на свой идентификатор пользователя
         } catch (JSONException e) {
             e.printStackTrace();
             return;
@@ -175,7 +178,19 @@ public class BookingActivity2 extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // Обработка ошибки запроса
-                        Toast.makeText(BookingActivity2.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        String errorMessage = "Error: " + error.getMessage();
+                        Toast.makeText(BookingActivity2.this, errorMessage, Toast.LENGTH_SHORT).show();
+
+                        // Проверка наличия сетевого ответа
+                        if (error.networkResponse != null) {
+                            // Получение кода ответа и данных из сетевого ответа
+                            int statusCode = error.networkResponse.statusCode;
+                            String responseData = new String(error.networkResponse.data);
+
+                            // Вывод кода ответа и данных в лог
+                            Log.e("ErrorResponse", "Status Code: " + statusCode);
+                            Log.e("ErrorResponse", "Response Data: " + responseData);
+                        }
                     }
                 });
 

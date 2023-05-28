@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,26 +20,50 @@ import ru.mvlikhachev.mytablepr.Adapter.ImgurApiClient;
 import ru.mvlikhachev.mytablepr.Adapter.ImgurResponse;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
+import ru.mvlikhachev.mytablepr.Interface.CartListener;
 import ru.mvlikhachev.mytablepr.R;
 
-public class ShowDetailActivity extends AppCompatActivity implements ManagementCart.CartListener {
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.squareup.picasso.Picasso;
+
+public class ShowDetailActivity extends AppCompatActivity implements CartListener {
     private TextView addToCartBtn;
     private TextView titleTxt, feeTxt, description, starTxt, tableTxt;
     private ImageView heart, restoranPic;
     private RestoranDomain object;
     private TextView numberOrderTxt;
     private ImageView plusBtn, minusBtn;
-
-    private int numberOrder = 1;
     private ManagementCart managementCart;
+    private int numberOrder = 1;
+
+    // Создание экземпляра ManagementCart с текущей активностью в качестве Context и CartListener
+
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_detail);
-        managementCart = new ManagementCart(getApplicationContext(), this);
+
+        // Инициализация объектов пользовательского интерфейса
         initView();
+
+        // Получение данных из переданного объекта
         getBundle();
+        CartActivity cartActivity = new CartActivity();
+
+        // Создание экземпляра ManagementCart с текущей активностью в качестве Context и CartActivity в качестве CartActivity
+        managementCart = ManagementCart.getInstance(this, cartActivity);
+        // Настройка обработчиков событий для кнопок
+        setupButtonListeners();
     }
 
     private void getBundle() {
@@ -50,53 +75,65 @@ public class ShowDetailActivity extends AppCompatActivity implements ManagementC
             starTxt.setText(String.valueOf(object.getStar()));
 
             Picasso.get().load(object.getPicture()).into(restoranPic);
-
-            addToCartBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String title = feeTxt.getText().toString();
-
-                    // Сохранение значения в SharedPreferences
-                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("title", title);
-                    editor.apply();
-
-                    Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
-                    intent1.putExtra("feeTxt", title); // Передача значения feeTxt в BookingActivity2
-                    startActivity(intent1);
-                }
-            });
-
-            heart.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    managementCart.addToCart(object);
-                }
-            });
-
-            plusBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    numberOrder = numberOrder + 1;
-                    numberOrderTxt.setText(String.valueOf(numberOrder));
-                    feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
-                }
-            });
-
-            minusBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (numberOrder > 1) {
-                        numberOrder = numberOrder - 1;
-                    }
-                    numberOrderTxt.setText(String.valueOf(numberOrder));
-                    feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
-                }
-            });
         } else {
             // Обработка ошибки: объект RestoranDomain не передан
         }
+    }
+
+    private void setupButtonListeners() {
+        addToCartBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String title = feeTxt.getText().toString();
+
+                // Сохранение значения в SharedPreferences
+                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("title", title);
+                editor.apply();
+
+                Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
+                intent1.putExtra("feeTxt", title); // Передача значения feeTxt в BookingActivity2
+                startActivity(intent1);
+            }
+        });
+
+        heart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                managementCart.addItem(object);
+            }
+        });
+
+        plusBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                numberOrder++;
+                updateOrderQuantity();
+            }
+        });
+
+        minusBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (numberOrder > 1) {
+                    numberOrder--;
+                    updateOrderQuantity();
+                }
+            }
+        });
+    }
+
+    private void updateOrderQuantity() {
+        numberOrderTxt.setText(String.valueOf(numberOrder));
+        feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
+    }
+
+    @Override
+    public void onCartUpdated() {
+        // Обработка обновления корзины
+        // В данном примере просто выводим уведомление Toast
+        Toast.makeText(this, "Корзина была обновлена", Toast.LENGTH_SHORT).show();
     }
 
     private void initView() {
@@ -111,10 +148,5 @@ public class ShowDetailActivity extends AppCompatActivity implements ManagementC
         starTxt = findViewById(R.id.starTxt);
         plusBtn = findViewById(R.id.plusCardBtn);
         minusBtn = findViewById(R.id.minusCardBtn);
-    }
-
-    @Override
-    public void onCartUpdated() {
-        // Обработка обновления корзины
     }
 }

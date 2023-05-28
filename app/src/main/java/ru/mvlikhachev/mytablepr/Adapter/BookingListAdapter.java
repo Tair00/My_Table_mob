@@ -32,7 +32,7 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
     public BookingListAdapter(ArrayList<RestoranDomain> listRestSelected, Context context,
                               ChangeNumberItemsListener changeNumberItemsListener) {
         this.listRestSelected = listRestSelected;
-        managementCart = new ManagementCart(context, (ManagementCart.CartListener) context);
+//        managementCart = new ManagementCart(context, (ManagementCart.CartListener) context);
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
 
@@ -66,7 +66,7 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
             public void onDismiss(View view) {
                 int adapterPosition = holder.getAdapterPosition();
                 RestoranDomain removedItem = listRestSelected.get(adapterPosition);
-                managementCart.removeItem(listRestSelected, adapterPosition, removedItem);
+                managementCart.removeItem(listRestSelected, adapterPosition);
                 listRestSelected.remove(adapterPosition);
                 notifyDataSetChanged();
                 changeNumberItemsListener.changed();

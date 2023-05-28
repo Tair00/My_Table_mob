@@ -4,7 +4,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
-@Entity(tableName = "cart_items")
+@Entity(tableName = "cart_items1")
 public class RestoranDomain implements Serializable {
 
 
