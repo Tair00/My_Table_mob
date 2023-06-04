@@ -11,6 +11,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,18 +29,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 import ru.mvlikhachev.mytablepr.Adapter.RestoranAdapter;
 import ru.mvlikhachev.mytablepr.Adapter.TableAdapter;
+import ru.mvlikhachev.mytablepr.Domain.DataHolder;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Domain.TableDomain;
 import ru.mvlikhachev.mytablepr.Fragment.DatePickerFragment;
 import ru.mvlikhachev.mytablepr.Fragment.TimePickerFragment;
+import ru.mvlikhachev.mytablepr.Fragment.UserNameFragment;
 import ru.mvlikhachev.mytablepr.R;
 
-public class BookingActivity2 extends AppCompatActivity {
+
+
+public class BookingActivity2 extends AppCompatActivity implements UserNameFragment.OnUserNameSetListener {
     private RecyclerView tableRecycler;
     static TableAdapter tableAdapter;
+    private String name;
+    private String day;
+    private String time;
     String serverUrl = "https://losermaru.pythonanywhere.com/table";
     static ArrayList<TableDomain> tableList = new ArrayList<>();
     Float price;
@@ -48,8 +57,10 @@ public class BookingActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking2);
         showTimePickerDialog();
+        tableList.clear();
         setTableRecycler(tableList);
         showDatePickerDialog();
+        showDialogFragment();
         String feeTxtValue = getIntent().getStringExtra("feeTxt");
         price = Float.parseFloat(feeTxtValue);
         // Выполнение GET-запроса к серверу
@@ -64,15 +75,8 @@ public class BookingActivity2 extends AppCompatActivity {
         tableAdapter.setOnItemClickListener(new TableAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(TableDomain table) {
-                // Получение даты и времени из выбранных значений
-                String day = getSelectedDate();
-                String time = getSelectedTime();
                 String number = table.getTitle();
-
-                String name = "Your Name";
-
-                // Выполнение POST-запроса на бронирование стола
-                executePostRequest(day, time, number, name);
+                executePostRequest(number, name);
             }
         });
         tableRecycler.setAdapter(tableAdapter);
@@ -85,7 +89,6 @@ public class BookingActivity2 extends AppCompatActivity {
         newFragment.setOnTimeSetListener(new TimePickerFragment.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                // Обновление выбранного времени
                 updateTime(hourOfDay, minute);
             }
         });
@@ -97,7 +100,6 @@ public class BookingActivity2 extends AppCompatActivity {
         newFragment.setOnDateSetListener(new DatePickerFragment.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                // Обновление выбранной даты
                 updateDate(year, month, dayOfMonth);
             }
         });
@@ -110,14 +112,12 @@ public class BookingActivity2 extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Обработка успешного ответа от сервера
                         parseResponse(response);
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // Обработка ошибки запроса
                         Toast.makeText(BookingActivity2.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -133,12 +133,10 @@ public class BookingActivity2 extends AppCompatActivity {
                 int id = jsonObject.getInt("id");
                 String title = jsonObject.getString("number");
                 String seat = jsonObject.getString("seat");
-//                String pic = jsonObject.getString("pic");
 
                 tableList.add(new TableDomain(id, title, seat));
             }
 
-            // Уведомление адаптера об изменении данных
             tableAdapter.notifyDataSetChanged();
 
         } catch (JSONException e) {
@@ -147,58 +145,92 @@ public class BookingActivity2 extends AppCompatActivity {
         }
     }
 
-    private void executePostRequest(String day, String time, String number, String name) {
+    private void showDialogFragment() {
+        UserNameFragment userNameFragment = UserNameFragment.newInstance();
+        userNameFragment.setOnUserNameSetListener(this);
+        userNameFragment.show(getSupportFragmentManager(), "userNameDialog");
+    }
+
+    @Override
+    public void onUserNameSet(String userName) {
+        name = userName;
+    }
+
+    private void executePostRequest(String number, String name) {
         RequestQueue queue = Volley.newRequestQueue(this);
+        Intent intent = getIntent();
+        String email = getIntent().getStringExtra("email");
+        String restoranPic = getIntent().getStringExtra("restoranPic");
 
-        // Создание JSON-объекта с необходимыми данными
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("day", day);
-            jsonBody.put("time", time);
-            jsonBody.put("number", number);
-            jsonBody.put("name", name);
-            jsonBody.put("price", price);
-            jsonBody.put("restaurant_id", "your_restaurant_id"); // Замените на свой идентификатор ресторана
-            jsonBody.put("user_id", "your_user_id"); // Замените на свой идентификатор пользователя
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
+        String userUrl = "https://losermaru.pythonanywhere.com/user/" + email;
 
-        // Создание POST-запроса
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "https://losermaru.pythonanywhere.com/reservation", jsonBody,
-                new Response.Listener<JSONObject>() {
+        StringRequest userRequest = new StringRequest(Request.Method.GET, userUrl,
+                new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        // Обработка успешного ответа от сервера
-                        Toast.makeText(BookingActivity2.this, "Reservation successful", Toast.LENGTH_SHORT).show();
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject userJson = new JSONObject(response);
+                            int userId = userJson.getInt("id");
+                            Integer restaurantId = getIntent().getIntExtra("restorantId",0);
+                            // Создание JSON-объекта с необходимыми данными
+                            JSONObject jsonBody = new JSONObject();
+                            jsonBody.put("day", day);
+                            jsonBody.put("time", time);
+                            jsonBody.put("number", number);
+                            jsonBody.put("name", name);
+                            jsonBody.put("price", price);
+                            jsonBody.put("restaurant_id", restaurantId); // Замените на свой идентификатор ресторана
+                            jsonBody.put("user_id", userId); // Замените на свой идентификатор пользователя
+                            jsonBody.put("status", false);
+                            jsonBody.put("picture", restoranPic);
+
+                            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "https://losermaru.pythonanywhere.com/reservation", jsonBody,
+                                    new Response.Listener<JSONObject>() {
+                                        @Override
+                                        public void onResponse(JSONObject response) {
+                                            Toast.makeText(BookingActivity2.this, "Reservation successful", Toast.LENGTH_SHORT).show();
+                                            Intent intent1 = new Intent(BookingActivity2.this, PuyActivity.class);
+                                        }
+                                    },
+                                    new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            String errorMessage = "Error: " + error.getMessage();
+                                            Toast.makeText(BookingActivity2.this, errorMessage, Toast.LENGTH_SHORT).show();
+                                            if (error.networkResponse != null) {
+                                                int statusCode = error.networkResponse.statusCode;
+                                                String responseData = new String(error.networkResponse.data);
+                                                Log.e("ErrorResponse", "Status Code: " + statusCode);
+                                                Log.e("ErrorResponse", "Response Data: " + responseData);
+                                            }
+                                        }
+                                    });
+
+                            queue.add(request);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(BookingActivity2.this, "Error parsing user response", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // Обработка ошибки запроса
                         String errorMessage = "Error: " + error.getMessage();
                         Toast.makeText(BookingActivity2.this, errorMessage, Toast.LENGTH_SHORT).show();
-
-                        // Проверка наличия сетевого ответа
                         if (error.networkResponse != null) {
-                            // Получение кода ответа и данных из сетевого ответа
                             int statusCode = error.networkResponse.statusCode;
                             String responseData = new String(error.networkResponse.data);
-
-                            // Вывод кода ответа и данных в лог
                             Log.e("ErrorResponse", "Status Code: " + statusCode);
                             Log.e("ErrorResponse", "Response Data: " + responseData);
                         }
                     }
                 });
 
-        queue.add(request);
+        queue.add(userRequest);
     }
 
     private String getSelectedDate() {
-        // Получение выбранной даты из DatePickerFragment
         DatePickerFragment datePickerFragment = (DatePickerFragment) getSupportFragmentManager().findFragmentByTag("datePicker");
         if (datePickerFragment != null) {
             return datePickerFragment.getSelectedDate();
@@ -207,7 +239,6 @@ public class BookingActivity2 extends AppCompatActivity {
     }
 
     private String getSelectedTime() {
-        // Получение выбранного времени из TimePickerFragment
         TimePickerFragment timePickerFragment = (TimePickerFragment) getSupportFragmentManager().findFragmentByTag("timePicker");
         if (timePickerFragment != null) {
             return timePickerFragment.getSelectedTime();
@@ -216,18 +247,20 @@ public class BookingActivity2 extends AppCompatActivity {
     }
 
     private void updateDate(int year, int month, int dayOfMonth) {
-        // Обновление выбранной даты в DatePickerFragment
         DatePickerFragment datePickerFragment = (DatePickerFragment) getSupportFragmentManager().findFragmentByTag("datePicker");
         if (datePickerFragment != null) {
             datePickerFragment.updateDate(year, month, dayOfMonth);
+
         }
+        day = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
     }
 
     private void updateTime(int hourOfDay, int minute) {
-        // Обновление выбранного времени в TimePickerFragment
         TimePickerFragment timePickerFragment = (TimePickerFragment) getSupportFragmentManager().findFragmentByTag("timePicker");
         if (timePickerFragment != null) {
             timePickerFragment.updateTime(hourOfDay, minute);
         }
+        time = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
+
     }
 }

@@ -55,10 +55,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void setProductRecycler(ArrayList<RestoranDomain> restorans) {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
-
+        String email = getIntent().getStringExtra("email");
         productRecycler = findViewById(R.id.restoranRecycler);
         productRecycler.setLayoutManager(layoutManager);
-        priceAdapter = new RestoranAdapter(this);
+        priceAdapter = new RestoranAdapter(this,email);
         productRecycler.setAdapter(priceAdapter);
         productRecycler.smoothScrollToPosition(100000);
         productRecycler.setHasFixedSize(true);
@@ -73,7 +73,18 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout homeBtn=findViewById(R.id.homeBtn);
         LinearLayout cartBtn =findViewById(R.id.cartBtn);
         LinearLayout setting =findViewById(R.id.setting);
-
+        setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this,ProfileActivity.class));
+            }
+        });
+        profileBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this,BookingListActivity.class));
+            }
+        });
         homeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

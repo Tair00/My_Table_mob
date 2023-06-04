@@ -56,10 +56,8 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
 
         holder.grade.setText(String.valueOf(listRestSelected.get(position).getStar()));
 
-        int drawableResourceId = holder.itemView.getContext().getResources()
-                .getIdentifier(listRestSelected.get(position).getPicture(), "drawable",
-                        holder.itemView.getContext().getPackageName());
-        Glide.with(holder.itemView.getContext()).load(drawableResourceId).into(holder.pic);
+        String imageUrl = listRestSelected.get(position).getPicture();
+        Glide.with(holder.itemView.getContext()).load(imageUrl).into(holder.pic);
 
         SwipeDismissBehavior<View> swipe = new SwipeDismissBehavior<>();
         swipe.setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_ANY);
@@ -87,7 +85,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
         return listRestSelected.size();
     }
 
-//    @Override
+    //    @Override
     public void onCartUpdated() {
         // Обработка обновления корзины
         // Вы можете вызвать методы, которые требуют обновленных данных корзины

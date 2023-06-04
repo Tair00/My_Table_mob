@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity {
         ConstraintLayout button = findViewById(R.id.login);
         EditText mail = findViewById(R.id.nameEdit);
         EditText password = findViewById(R.id.passwordEdit);
-        JSONObject jsonParams = new JSONObject();
+
         signUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,19 +56,21 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String email = mail.getText().toString();
                 String userPassword = password.getText().toString();
 
-
-                new LoginActivity.LoginAsyncTask().execute(email, userPassword);
+                new LoginAsyncTask().execute(email, userPassword);
             }
         });
     }
 
     private class LoginAsyncTask extends AsyncTask<String, Void, Boolean> {
+        private String email; // Объявляем поле email
+
         @Override
         protected Boolean doInBackground(String... params) {
             String email = params[0];
@@ -95,6 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                 connection.disconnect();
 
                 // Проверка успешности аутентификации
+                this.email = email; // Устанавливаем значение email
                 return responseCode == 200;
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -105,8 +108,9 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean success) {
             if (success) {
-                // Аутентификация прошла успешно, переходим на следующий экран
+                // Аутентификация прошла успешно, отправляем данные email и переходим на MainActivity
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("email", email); // Используем поле email
                 startActivity(intent);
             } else {
                 // Ошибка аутентификации, выполните соответствующие действия

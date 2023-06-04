@@ -26,13 +26,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.RestoranViewHolder> {
+  public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.RestoranViewHolder> {
     private Context context;
     private ArrayList<RestoranDomain> products;
-
-    public RestoranAdapter(Context context) {
+    private String email;
+    private Integer restorantId;
+    public RestoranAdapter(Context context, String email) {
         this.context = context;
         this.products = new ArrayList<>();
+        this.email = email;
     }
 
     public void updateProducts(ArrayList<RestoranDomain> newProducts) {
@@ -51,6 +53,8 @@ public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.Restor
     @Override
     public void onBindViewHolder(@NonNull RestoranViewHolder holder, int position) {
         RestoranDomain product = products.get(position);
+
+
         holder.productTitles.setText(product.getName());
         holder.productPrice.setText(String.valueOf(product.getPrice()));
 
@@ -62,8 +66,12 @@ public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.Restor
             public void onClick(View view) {
                 ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,
                         new Pair<View, String>(holder.productImage, "productImage"));
+                restorantId = product.getId();
+                System.out.println("restId ==================" + restorantId);
                 Intent intent = new Intent(holder.itemView.getContext(), ShowDetailActivity.class);
+                intent.putExtra("email", email);
                 intent.putExtra("object", product);
+                intent.putExtra("restorantId",restorantId);
                 holder.itemView.getContext().startActivity(intent, options.toBundle());
             }
         });

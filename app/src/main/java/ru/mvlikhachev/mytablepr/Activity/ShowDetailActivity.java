@@ -16,11 +16,15 @@ import com.squareup.picasso.Picasso;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import ru.mvlikhachev.mytablepr.Adapter.ImgurApiClient;
 import ru.mvlikhachev.mytablepr.Adapter.ImgurResponse;
+import ru.mvlikhachev.mytablepr.Domain.RestaurantResponse;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.Interface.CartListener;
+import ru.mvlikhachev.mytablepr.Interface.RestaurantAPI;
 import ru.mvlikhachev.mytablepr.R;
 
 import android.content.Intent;
@@ -45,24 +49,15 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
     private ManagementCart managementCart;
     private int numberOrder = 1;
 
-    // Создание экземпляра ManagementCart с текущей активностью в качестве Context и CartListener
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_detail);
 
-        // Инициализация объектов пользовательского интерфейса
         initView();
-
-        // Получение данных из переданного объекта
         getBundle();
         CartActivity cartActivity = new CartActivity();
-
-        // Создание экземпляра ManagementCart с текущей активностью в качестве Context и CartActivity в качестве CartActivity
         managementCart = ManagementCart.getInstance(this, cartActivity);
-        // Настройка обработчиков событий для кнопок
         setupButtonListeners();
     }
 
@@ -80,20 +75,59 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
         }
     }
 
+    private void fetchRestaurantData(String restaurantId) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://losermaru.pythonanywhere.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RestaurantAPI restaurantAPI = retrofit.create(RestaurantAPI.class);
+        Call<RestaurantResponse> call = restaurantAPI.getRestaurantById(restaurantId);
+
+        call.enqueue(new Callback<RestaurantResponse>() {
+            @Override
+            public void onResponse(Call<RestaurantResponse> call, Response<RestaurantResponse> response) {
+                if (response.isSuccessful()) {
+                    RestaurantResponse restaurantResponse = response.body();
+                    if (restaurantResponse != null) {
+                        // Получите данные о ресторане из restaurantResponse и отобразите их на экране или выполните нужные действия
+                        Toast.makeText(ShowDetailActivity.this, "Вы успешно забронировали столик", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Обработка ошибки при получении данных
+                    Toast.makeText(ShowDetailActivity.this, "Ошибка при получении данных", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RestaurantResponse> call, Throwable t) {
+                // Обработка ошибки при выполнении запроса
+                Toast.makeText(ShowDetailActivity.this, "Ошибка: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void setupButtonListeners() {
         addToCartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String title = feeTxt.getText().toString();
-
-                // Сохранение значения в SharedPreferences
                 SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("title", title);
                 editor.apply();
+                String email = getIntent().getStringExtra("email");
+
+                // Передаем email в BookingActivity2
+
+                Integer restaurantId = getIntent().getIntExtra("restorantId",0);
 
                 Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
-                intent1.putExtra("feeTxt", title); // Передача значения feeTxt в BookingActivity2
+                intent1.putExtra("email", email);
+                intent1.putExtra("restorantId", restaurantId);
+                System.out.println("restaurantId +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ "+restaurantId);
+                intent1.putExtra("feeTxt", title);
+                intent1.putExtra("restoranPic", object.getPicture()); // Pass the restoranPic value
                 startActivity(intent1);
             }
         });
@@ -131,9 +165,7 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
 
     @Override
     public void onCartUpdated() {
-        // Обработка обновления корзины
-        // В данном примере просто выводим уведомление Toast
-        Toast.makeText(this, "Корзина была обновлена", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Добавлено в избранное", Toast.LENGTH_SHORT).show();
     }
 
     private void initView() {

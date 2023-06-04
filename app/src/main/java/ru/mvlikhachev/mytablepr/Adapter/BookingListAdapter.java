@@ -6,107 +6,144 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.material.behavior.SwipeDismissBehavior;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import ru.mvlikhachev.mytablepr.Domain.BookingItem;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 import ru.mvlikhachev.mytablepr.Interface.ChangeNumberItemsListener;
 import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.R;
 
 public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.ViewHolder> {
+    private Context context;
+    private List<BookingItem> bookingList;
 
-    private ArrayList<RestoranDomain> listRestSelected;
-    private ManagementCart managementCart;
-    private ChangeNumberItemsListener changeNumberItemsListener;
-    private ItemTouchHelper itemTouchHelper;
+    public BookingListAdapter(Context context, List<BookingItem> bookingList) {
+        this.context = context;
+        this.bookingList = bookingList;
+    }
 
-    public BookingListAdapter(ArrayList<RestoranDomain> listRestSelected, Context context,
-                              ChangeNumberItemsListener changeNumberItemsListener) {
-        this.listRestSelected = listRestSelected;
-//        managementCart = new ManagementCart(context, (ManagementCart.CartListener) context);
-        this.changeNumberItemsListener = changeNumberItemsListener;
+    public void fetchData() {
+        String serverUrl = "https://losermaru.pythonanywhere.com/reservation";
+        RequestQueue queue = Volley.newRequestQueue(context);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, serverUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        parseResponse(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(context, "Ошибка при получении данных: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        System.out.println("Ошибка при получении данных: " + error.getMessage());
+                    }
+                });
+        queue.add(request);
+    }
+
+    private void parseResponse(JSONObject response) {
+        try {
+            JSONArray jsonArray = response.getJSONArray("data");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                boolean status = jsonObject.getBoolean("status");
+                if (status) {
+                    String picture = jsonObject.getString("picture");
+                    String date = jsonObject.getString("date");
+                    String time = jsonObject.getString("time");
+                    String name = jsonObject.getString("name");
+                    String number = jsonObject.getString("number");
+                    Integer user_id = jsonObject.getInt("user_id");
+                    bookingList.add(new BookingItem(status,picture, date, time, name,number,user_id));
+                }
+            }
+            notifyDataSetChanged();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Ошибка при разборе ответа", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.booking_item, parent, false);
-        return new ViewHolder(inflate);
-    }
-
-    public void updateCartList(ArrayList<RestoranDomain> list) {
-        this.listRestSelected = list;
-        notifyDataSetChanged();
+        View view = LayoutInflater.from(context).inflate(R.layout.booking_item, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.title.setText(listRestSelected.get(position).getName());
-        holder.feeEachItem.setText(String.valueOf(listRestSelected.get(position).getPrice()));
-        holder.grade.setText(String.valueOf(listRestSelected.get(position).getStar()));
+        int count = 0;
+        for (BookingItem item : bookingList) {
+            if (item.getStatus()) {
+                if (count == position) {
+                    // Здесь выполняйте установку значений в соответствующие элементы интерфейса booking_item
+                    // Например:
+                    Picasso.get().load(item.getPicture()).into(holder.imageView);
 
-        int drawableResourceId = holder.itemView.getContext().getResources()
-                .getIdentifier(listRestSelected.get(position).getPicture(), "drawable",
-                        holder.itemView.getContext().getPackageName());
-        Glide.with(holder.itemView.getContext()).load(drawableResourceId).into(holder.pic);
-
-        SwipeDismissBehavior<View> swipe = new SwipeDismissBehavior<>();
-        swipe.setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_ANY);
-        swipe.setListener(new SwipeDismissBehavior.OnDismissListener() {
-            @Override
-            public void onDismiss(View view) {
-                int adapterPosition = holder.getAdapterPosition();
-                RestoranDomain removedItem = listRestSelected.get(adapterPosition);
-                managementCart.removeItem(listRestSelected, adapterPosition);
-                listRestSelected.remove(adapterPosition);
-                notifyDataSetChanged();
-                changeNumberItemsListener.changed();
+                    holder.dateTextView.setText(item.getDate());
+                    holder.timeTextView.setText(item.getTime());
+                    holder.nameTextView.setText(item.getName());
+                    holder.number.setText(item.getNumber());
+                    break;
+                }
+                count++;
             }
-
-            @Override
-            public void onDragStateChanged(int state) {
-
-            }
-        });
-
-        // Установка поведения SwipeDismissBehavior для элемента списка
-        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) holder.itemView.getLayoutParams();
-        params.setBehavior(swipe);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return listRestSelected.size();
+        int count = 0;
+        for (BookingItem item : bookingList) {
+            if (item.getStatus()) {
+                count++;
+            }
+        }
+        return count;
     }
 
-    public void deleteItem(int position) {
-        managementCart.deleteCartItem(listRestSelected.get(position));
-        listRestSelected.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, getItemCount());
-        changeNumberItemsListener.changed();
-    }
-
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title, feeEachItem;
-        ImageView pic;
-        TextView num, grade;
-
-        public ViewHolder(@NonNull View itemView) {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        // Объявление элементов интерфейса booking_item
+        // Например:
+        public ImageView imageView;
+        public TextView dateTextView;
+        public TextView timeTextView;
+        public TextView nameTextView;
+        public TextView number;
+        public ViewHolder(View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.title);
-            pic = itemView.findViewById(R.id.pic);
-            feeEachItem = itemView.findViewById(R.id.fee);
-            grade = itemView.findViewById(R.id.grade);
+            // Инициализация элементов интерфейса booking_item
+            // Например:
+            imageView = itemView.findViewById(R.id.pic);
+            dateTextView = itemView.findViewById(R.id.date);
+            timeTextView = itemView.findViewById(R.id.time);
+            nameTextView = itemView.findViewById(R.id.title);
+            number= itemView.findViewById(R.id.tableNum);
         }
     }
 }

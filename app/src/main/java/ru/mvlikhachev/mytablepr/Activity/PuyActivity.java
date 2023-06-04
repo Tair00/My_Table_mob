@@ -24,5 +24,6 @@ public class PuyActivity extends AppCompatActivity {
 
         // Используйте полученное значение по своему усмотрению
         feeTxt.setText(title);
+
     }
 }

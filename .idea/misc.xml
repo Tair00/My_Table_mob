@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
@@ -28,7 +27,8 @@
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/activity_puy.xml" value="0.4" />
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/activity_show_detail.xml" value="0.2" />
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/activity_signup.xml" value="0.33905579399141633" />
-        <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/booking_item.xml" value="0.264" />
+        <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/booking_item.xml" value="0.4" />
+        <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/fragment_user_name.xml" value="0.2" />
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/puy_item.xml" value="0.25416666666666665" />
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/restoran_item.xml" value="0.25416666666666665" />
         <entry key="..\:/Games/MyTablePr/app/src/main/res/layout/table_item.xml" value="0.2" />
@@ -40,7 +40,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
