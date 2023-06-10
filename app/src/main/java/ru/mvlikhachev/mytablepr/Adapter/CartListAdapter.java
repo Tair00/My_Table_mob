@@ -23,11 +23,9 @@ import ru.mvlikhachev.mytablepr.Helper.ManagementCart;
 import ru.mvlikhachev.mytablepr.R;
 
 public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHolder> {
-
     private ArrayList<RestoranDomain> listRestSelected;
     private ManagementCart managementCart;
     private ChangeNumberItemsListener changeNumberItemsListener;
-    private ItemTouchHelper itemTouchHelper;
 
     public CartListAdapter(ArrayList<RestoranDomain> listRestSelected, CartActivity activity,
                            ChangeNumberItemsListener changeNumberItemsListener) {
@@ -35,7 +33,6 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
         managementCart = ManagementCart.getInstance(activity, activity);
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
-
 
     @NonNull
     @Override
@@ -53,7 +50,6 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.title.setText(listRestSelected.get(position).getName());
         holder.feeEachItem.setText(String.valueOf(listRestSelected.get(position).getPrice()));
-
         holder.grade.setText(String.valueOf(listRestSelected.get(position).getStar()));
 
         String imageUrl = listRestSelected.get(position).getPicture();
@@ -65,13 +61,14 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
             @Override
             public void onDismiss(View view) {
                 int adapterPosition = holder.getAdapterPosition();
-                RestoranDomain removedItem = listRestSelected.get(adapterPosition);
-                managementCart.removeItem(listRestSelected, adapterPosition);
-                listRestSelected.remove(adapterPosition);
-                notifyDataSetChanged();
-                changeNumberItemsListener.changed();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    RestoranDomain removedItem = listRestSelected.get(adapterPosition);
+                    managementCart.removeItem(listRestSelected, adapterPosition);
+                    listRestSelected.remove(adapterPosition);
+                    notifyDataSetChanged();
+                    changeNumberItemsListener.changed();
+                }
             }
-
 
             @Override
             public void onDragStateChanged(int state) {
@@ -85,49 +82,42 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.ViewHo
         return listRestSelected.size();
     }
 
-    //    @Override
-    public void onCartUpdated() {
-        // Обработка обновления корзины
-        // Вы можете вызвать методы, которые требуют обновленных данных корзины
-    }
-
     public void deleteItem(int position) {
-        managementCart.deleteCartItem(listRestSelected.get(position));
-        listRestSelected.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, getItemCount());
-        changeNumberItemsListener.changed();
+        if (!listRestSelected.isEmpty() && position >= 0 && position < listRestSelected.size()) {
+            managementCart.deleteCartItem(listRestSelected.get(position));
+            listRestSelected.remove(position);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, listRestSelected.size());
+            changeNumberItemsListener.changed();
+        }
     }
 
-//    @Override
-//    public void onItemMove(int fromPosition, int toPosition) {
-//        // Do nothing
-//    }
-//
-//    @Override
-//    public void onItemDismiss(int position) {
-//        // Do nothing
-//    }
+    public interface ChangeNumberItemsListener {
+        void changed();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        TextView title, feeEachItem;
+        ImageView pic;
+        TextView num, grade;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.title);
+            pic = itemView.findViewById(R.id.pic);
+            feeEachItem = itemView.findViewById(R.id.fee);
+            grade = itemView.findViewById(R.id.grade);
+        }
+    }
+}
+
+
 
     interface ItemTouchHelperAdapter {
         void onItemMove(int fromPosition, int toPosition);
 
         void onItemDismiss(int position);
     }
-    public class ViewHolder extends RecyclerView.ViewHolder{
-        TextView title,feeEachItem;
-        ImageView pic;
-        TextView num,grade;
-
-        public ViewHolder(@NonNull View itemView){
-            super(itemView);
-            title = itemView.findViewById(R.id.title);
-            pic= itemView.findViewById(R.id.pic);
-            feeEachItem = itemView.findViewById(R.id.fee);
-            grade = itemView.findViewById(R.id.grade);
-//            totalEachItem = itemView.findViewById(R.id.totalEachItem);
 
 
-        }
-    }
-}
+

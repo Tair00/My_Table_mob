@@ -1,5 +1,6 @@
 package ru.mvlikhachev.mytablepr.Activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -45,7 +47,7 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
     private ImageView heart, restoranPic;
     private RestoranDomain object;
     private TextView numberOrderTxt;
-    private ImageView plusBtn, minusBtn;
+    private ImageView plusBtn, minusBtn,star;
     private ManagementCart managementCart;
     private int numberOrder = 1;
 
@@ -123,15 +125,23 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
                 Integer restaurantId = getIntent().getIntExtra("restorantId",0);
 
                 Intent intent1 = new Intent(ShowDetailActivity.this, BookingActivity2.class);
+                String  token = getIntent().getStringExtra("access_token");
                 intent1.putExtra("email", email);
+                intent1.putExtra("access_token",token);
+                System.out.println("+++++++++++++++++2" + token);
                 intent1.putExtra("restorantId", restaurantId);
-                System.out.println("restaurantId +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ "+restaurantId);
                 intent1.putExtra("feeTxt", title);
                 intent1.putExtra("restoranPic", object.getPicture()); // Pass the restoranPic value
                 startActivity(intent1);
             }
         });
-
+        star.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Показать диалоговое окно с вариантами оценок
+                showRatingDialog();
+            }
+        });
         heart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,6 +168,23 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
         });
     }
 
+    private void showRatingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Оцените заведение");
+
+        final String[] ratings = {"1", "2", "3", "4", "5"};
+        builder.setItems(ratings, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String selectedRating = ratings[which];
+                // Выполните действия с выбранной оценкой, например, сохраните ее в базе данных
+                Toast.makeText(ShowDetailActivity.this, "Оценка ресторана: " + selectedRating, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
     private void updateOrderQuantity() {
         numberOrderTxt.setText(String.valueOf(numberOrder));
         feeTxt.setText(String.valueOf(numberOrder * object.getPrice()));
@@ -169,6 +196,7 @@ public class ShowDetailActivity extends AppCompatActivity implements CartListene
     }
 
     private void initView() {
+        star=findViewById(R.id.star);
         tableTxt = findViewById(R.id.tableTxt);
         numberOrderTxt = findViewById(R.id.numberItemTxt);
         heart = findViewById(R.id.heart);

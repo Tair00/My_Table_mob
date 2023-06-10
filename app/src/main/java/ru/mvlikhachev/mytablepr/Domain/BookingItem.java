@@ -9,18 +9,6 @@ public  class BookingItem {
     private String number;
     private Integer id;
 
-    public BookingItem(boolean status, String picture, String date, String time, String name, String number, Integer user_id) {
-    }
-
-    public Integer getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Integer user_id) {
-        this.user_id = user_id;
-    }
-
-    private Integer user_id;
 
 
     public String getNumber() {
@@ -73,7 +61,6 @@ public  class BookingItem {
         this.name = name;
         this.status=status;
         this.number=number;
-
     }
 
 

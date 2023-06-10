@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="54dp"
-            android:text="Выберите столик"
+            android:text="   Выберите столик"
             android:textColor="#414141"
             android:textSize="30dp"
             app:layout_constraintEnd_toEndOf="parent"

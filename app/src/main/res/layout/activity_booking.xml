@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="104dp"
-        android:text="Выберите столик"
+        android:text=" Выберите столик"
         android:textColor="#414141"
         android:textSize="30dp"
         app:layout_constraintBottom_toTopOf="@+id/mapa"

@@ -28,10 +28,12 @@ import retrofit2.Response;
 
   public class RestoranAdapter extends RecyclerView.Adapter<RestoranAdapter.RestoranViewHolder> {
     private Context context;
+
     private ArrayList<RestoranDomain> products;
-    private String email;
+    private String email,token;
     private Integer restorantId;
-    public RestoranAdapter(Context context, String email) {
+    public RestoranAdapter(Context context, String email,String token ) {
+        this.token = token;
         this.context = context;
         this.products = new ArrayList<>();
         this.email = email;
@@ -67,9 +69,9 @@ import retrofit2.Response;
                 ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,
                         new Pair<View, String>(holder.productImage, "productImage"));
                 restorantId = product.getId();
-                System.out.println("restId ==================" + restorantId);
                 Intent intent = new Intent(holder.itemView.getContext(), ShowDetailActivity.class);
                 intent.putExtra("email", email);
+                intent.putExtra("access_token",token);
                 intent.putExtra("object", product);
                 intent.putExtra("restorantId",restorantId);
                 holder.itemView.getContext().startActivity(intent, options.toBundle());

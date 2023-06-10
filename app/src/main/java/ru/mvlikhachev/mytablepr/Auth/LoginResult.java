@@ -1,10 +1,9 @@
-package ru.mvlikhachev.mytablepr.Domain;
+package ru.mvlikhachev.mytablepr.Auth;
 
 import com.google.gson.annotations.SerializedName;
 
 public class LoginResult {
-    @SerializedName("access_token")
-    private String token;
+
     private String name;
 
     private String password;
@@ -12,9 +11,7 @@ public class LoginResult {
     public String getName() {
         return name;
     }
-    public String getToken() {
-        return token;
-    }
+
 
     public String getPassword() {
         return password;

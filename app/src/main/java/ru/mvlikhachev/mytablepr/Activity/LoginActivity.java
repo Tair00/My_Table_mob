@@ -1,19 +1,38 @@
 package ru.mvlikhachev.mytablepr.Activity;
 
-
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import retrofit2.Retrofit;
+import ru.mvlikhachev.mytablepr.R;
+import ru.mvlikhachev.mytablepr.Interface.RetrofitInterface;
+
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,16 +43,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import ru.mvlikhachev.mytablepr.Domain.LoginResult;
-import ru.mvlikhachev.mytablepr.Interface.RetrofitInterface;
-import ru.mvlikhachev.mytablepr.R;
 
 public class LoginActivity extends AppCompatActivity {
     private Retrofit retrofit;
@@ -70,6 +79,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private class LoginAsyncTask extends AsyncTask<String, Void, Boolean> {
         private String email; // Объявляем поле email
+        private String token;
 
         @Override
         protected Boolean doInBackground(String... params) {
@@ -92,13 +102,27 @@ public class LoginActivity extends AppCompatActivity {
                 outputStream.close();
 
                 int responseCode = connection.getResponseCode();
-                // Process the server response...
 
-                connection.disconnect();
+                if (responseCode == 200) {
+                    // Чтение ответа сервера
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
 
-                // Проверка успешности аутентификации
-                this.email = email; // Устанавливаем значение email
-                return responseCode == 200;
+                    // Извлечение access_token из ответа JSON
+                    JSONObject jsonResponse = new JSONObject(response.toString());
+                    token = jsonResponse.getString("access_token");
+
+                    // Проверка успешности аутентификации
+                    this.email = email; // Устанавливаем значение email
+                    return true;
+                } else {
+                    return false;
+                }
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
@@ -110,6 +134,8 @@ public class LoginActivity extends AppCompatActivity {
             if (success) {
                 // Аутентификация прошла успешно, отправляем данные email и переходим на MainActivity
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("access_token", token);
+                System.out.println("===================================="+token);
                 intent.putExtra("email", email); // Используем поле email
                 startActivity(intent);
             } else {
@@ -120,3 +146,4 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 }
+

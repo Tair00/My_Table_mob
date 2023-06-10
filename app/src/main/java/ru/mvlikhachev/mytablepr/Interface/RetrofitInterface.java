@@ -2,6 +2,7 @@ package ru.mvlikhachev.mytablepr.Interface;
 
 
 
+import okhttp3.ResponseBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.Query;
@@ -13,8 +14,8 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
-import ru.mvlikhachev.mytablepr.Activity.RegistrationResult;
-import ru.mvlikhachev.mytablepr.Domain.LoginResult;
+import ru.mvlikhachev.mytablepr.Auth.LoginResult;
+import ru.mvlikhachev.mytablepr.Domain.LoginRequest;
 import ru.mvlikhachev.mytablepr.Domain.RestoranDomain;
 
 public interface RetrofitInterface {
@@ -25,6 +26,8 @@ public interface RetrofitInterface {
 //            @Field("email") String email,
 //            @Field("password") String password
 //    );
+    @POST("/auth") // Замените на фактический путь к вашему эндпоинту аутентификации
+    Call<ResponseBody> login(@Body LoginRequest loginRequest);
     @FormUrlEncoded
     @POST("/user")
     Call<Void> executeSignup(

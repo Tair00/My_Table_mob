@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -29,7 +31,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import ru.mvlikhachev.mytablepr.Adapter.RestoranAdapter;
 import ru.mvlikhachev.mytablepr.Adapter.TableAdapter;
@@ -49,9 +53,12 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
     private String name;
     private String day;
     private String time;
+    String token;
     String serverUrl = "https://losermaru.pythonanywhere.com/table";
     static ArrayList<TableDomain> tableList = new ArrayList<>();
     Float price;
+    Integer restaurantId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,8 +68,10 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
         setTableRecycler(tableList);
         showDatePickerDialog();
         showDialogFragment();
+        token = getIntent().getStringExtra("access_token");
         String feeTxtValue = getIntent().getStringExtra("feeTxt");
         price = Float.parseFloat(feeTxtValue);
+        restaurantId = getIntent().getIntExtra("restorantId", 0);
         // Выполнение GET-запроса к серверу
         executeGetRequest();
     }
@@ -120,7 +129,26 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(BookingActivity2.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                });
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token); // Добавление заголовка авторизации
+                return headers;
+            }
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                int statusCode = response.statusCode;
+                if (statusCode == 422) {
+                    // Обработка ошибки валидации данных на сервере
+                    String errorMessage = "Data validation error";
+                    return Response.error(new VolleyError(errorMessage));
+                } else {
+                    return super.parseNetworkResponse(response);
+                }
+            }
+        };
 
         queue.add(stringRequest);
     }
@@ -133,8 +161,10 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                 int id = jsonObject.getInt("id");
                 String title = jsonObject.getString("number");
                 String seat = jsonObject.getString("seat");
-
-                tableList.add(new TableDomain(id, title, seat));
+                String restId = jsonObject.getString("restaurant_id");
+                if (restId.equals(String.valueOf(restaurantId))) {
+                    tableList.add(new TableDomain(id, title, seat, restId));
+                }
             }
 
             tableAdapter.notifyDataSetChanged();
@@ -171,7 +201,7 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                         try {
                             JSONObject userJson = new JSONObject(response);
                             int userId = userJson.getInt("id");
-                            Integer restaurantId = getIntent().getIntExtra("restorantId",0);
+
                             // Создание JSON-объекта с необходимыми данными
                             JSONObject jsonBody = new JSONObject();
                             jsonBody.put("day", day);
@@ -181,7 +211,7 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                             jsonBody.put("price", price);
                             jsonBody.put("restaurant_id", restaurantId); // Замените на свой идентификатор ресторана
                             jsonBody.put("user_id", userId); // Замените на свой идентификатор пользователя
-                            jsonBody.put("status", false);
+                            jsonBody.put("status", true);
                             jsonBody.put("picture", restoranPic);
 
                             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, "https://losermaru.pythonanywhere.com/reservation", jsonBody,
@@ -190,6 +220,7 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                                         public void onResponse(JSONObject response) {
                                             Toast.makeText(BookingActivity2.this, "Reservation successful", Toast.LENGTH_SHORT).show();
                                             Intent intent1 = new Intent(BookingActivity2.this, PuyActivity.class);
+                                            startActivity(intent1);
                                         }
                                     },
                                     new Response.ErrorListener() {
@@ -204,7 +235,15 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                                                 Log.e("ErrorResponse", "Response Data: " + responseData);
                                             }
                                         }
-                                    });
+                                    }) {
+                                @Override
+                                public Map<String, String> getHeaders() throws AuthFailureError {
+                                    Map<String, String> headers = new HashMap<>();
+
+                                    headers.put("Authorization", "Bearer " + token);
+                                    return headers;
+                                }
+                            };
 
                             queue.add(request);
                         } catch (JSONException e) {
@@ -225,7 +264,14 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
                             Log.e("ErrorResponse", "Response Data: " + responseData);
                         }
                     }
-                });
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
 
         queue.add(userRequest);
     }
@@ -261,6 +307,5 @@ public class BookingActivity2 extends AppCompatActivity implements UserNameFragm
             timePickerFragment.updateTime(hourOfDay, minute);
         }
         time = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
-
     }
 }

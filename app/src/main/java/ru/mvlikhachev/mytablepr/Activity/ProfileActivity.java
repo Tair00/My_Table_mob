@@ -37,12 +37,13 @@ public class ProfileActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_GALLERY = 1;
 
     private ImageView button;
+    String  token = getIntent().getStringExtra("access_token");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_option);
-
+        String  token = getIntent().getStringExtra("access_token");
         button = findViewById(R.id.ImgButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override

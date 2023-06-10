@@ -66,6 +66,10 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
     }
 
     private void parseResponse(JSONObject response) {
+
+
+
+
         try {
             JSONArray jsonArray = response.getJSONArray("data");
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -77,8 +81,7 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
                     String time = jsonObject.getString("time");
                     String name = jsonObject.getString("name");
                     String number = jsonObject.getString("number");
-                    Integer user_id = jsonObject.getInt("user_id");
-                    bookingList.add(new BookingItem(status,picture, date, time, name,number,user_id));
+                    bookingList.add(new BookingItem(status,picture, date, time, name,number));
                 }
             }
             notifyDataSetChanged();
@@ -120,12 +123,14 @@ public class BookingListAdapter extends RecyclerView.Adapter<BookingListAdapter.
     public int getItemCount() {
         int count = 0;
         for (BookingItem item : bookingList) {
-            if (item.getStatus()) {
+            Boolean status = item.getStatus();
+            if (status != null && status.booleanValue()) {
                 count++;
             }
         }
         return count;
     }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // Объявление элементов интерфейса booking_item

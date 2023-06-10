@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -20,7 +21,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ru.mvlikhachev.mytablepr.Adapter.BookingListAdapter;
 import ru.mvlikhachev.mytablepr.Domain.BookingItem;
@@ -30,6 +33,7 @@ public class BookingListActivity extends Activity {
     private RecyclerView recyclerView;
     private BookingListAdapter adapter;
     private List<BookingItem> bookingList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,8 @@ public class BookingListActivity extends Activity {
     }
 
     private void executeGetRequest() {
+        String token = getIntent().getStringExtra("access_token"); // Получение значения токена
+
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "https://losermaru.pythonanywhere.com/reservation";
 
@@ -64,38 +70,34 @@ public class BookingListActivity extends Activity {
                     public void onErrorResponse(VolleyError error) {
                         // Обработка ошибки запроса
                         Toast.makeText(BookingListActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        System.out.println("-------------------"+ error.getMessage());
+                        System.out.println("-------------------" + error.getMessage());
                     }
-                });
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token); // Добавление заголовка авторизации
+                return headers;
+            }
+        };
 
         queue.add(request);
     }
-
-
     private void parseResponse(JSONArray response) {
         try {
             for (int i = 0; i < response.length(); i++) {
                 JSONObject jsonObject = response.getJSONObject(i);
-
-                // Получение значений из JSON-объекта
                 Integer id = jsonObject.getInt("restaurant_id");
                 Boolean status = jsonObject.getBoolean("status");
                 String picture = jsonObject.getString("picture");
                 String date = jsonObject.getString("day");
                 String time = jsonObject.getString("time");
                 String number = jsonObject.getString("number");
-                String name = jsonObject.getString("name");;
-
-                // Создание объекта Booking и добавление его в список
+                String name = "Tair";
                 BookingItem booking = new BookingItem(status, picture, date, time,name, id,number);
-                System.out.println("---------------------------" + id);
                 bookingList.add(booking);
-
-                // Выполнение запроса для получения значения name по id ресторана
                 fetchRestaurantName(id, booking);
             }
-
-            // Обновление данных адаптера
             adapter.notifyDataSetChanged();
 
         } catch (JSONException e) {
@@ -127,7 +129,6 @@ public class BookingListActivity extends Activity {
                         error.printStackTrace();
                     }
                 });
-
         queue.add(request);
     }
 }

@@ -48,6 +48,11 @@
         <activity
             android:name=".Activity.BookingActivity2"
             android:exported="false" />
+<!--        <activity-->
+<!--            android:name=".Auth.LoginActivity"-->
+<!--            android:exported="true"-->
+<!--            android:label="@string/app_name"-->
+<!--            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >-->
         <activity
             android:name=".Activity.LoginActivity"
             android:exported="true"

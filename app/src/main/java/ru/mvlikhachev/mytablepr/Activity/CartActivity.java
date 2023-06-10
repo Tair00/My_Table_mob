@@ -56,12 +56,13 @@ public class CartActivity extends AppCompatActivity implements ManagementCart.Ca
     protected void initList() {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerViewList.setLayoutManager(linearLayoutManager);
-        cartListAdapter = new CartListAdapter((ArrayList<RestoranDomain>) managementCart.getListCart(), this, new ChangeNumberItemsListener() {
+        cartListAdapter = new CartListAdapter((ArrayList<RestoranDomain>) managementCart.getListCart(), this, new CartListAdapter.ChangeNumberItemsListener() {
             @Override
             public void changed() {
                 calculateCart();
             }
         });
+
         recyclerViewList.setAdapter(cartListAdapter);
         initSwipeToDelete();
 

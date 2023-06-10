@@ -8,8 +8,15 @@ public class TableDomain implements Serializable {
     private String title;
     private String seat;
     private String pic;
+    private String restId;
 
+    public String getRestId() {
+        return restId;
+    }
 
+    public void setRestId(String restId) {
+        this.restId = restId;
+    }
 
     public int getId() {
         return id;
@@ -43,12 +50,12 @@ public class TableDomain implements Serializable {
         this.pic = pic;
     }
 
-    public TableDomain(int id, String title, String desc) {
+    public TableDomain(int id, String title, String desc,String restId) {
         this.id = id;
         this.title = title;
         this.seat = desc;
         this.pic = pic;
-
+        this.restId = restId;
 
     }
 }
